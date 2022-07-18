@@ -121,7 +121,7 @@ resource "aws_s3_bucket_versioning" "imported_bucket4_versioning" {
 ############################## Bucket 3 lifecycle configuration ##############################
 ###
 #ERROR
-###
+####
 resource "aws_s3_bucket_lifecycle_configuration" "lifecycle_bucket4" {
   depends_on = [aws_s3_bucket_versioning.imported_bucket4_versioning]
   bucket = aws_s3_bucket.imported_bucket4.bucket
