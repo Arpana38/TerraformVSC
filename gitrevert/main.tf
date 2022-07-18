@@ -4,5 +4,3 @@ resource "aws_s3_bucket" "imported_bucket2" {
     name = "tag-bucket2"
   }
 }
-
-#added line to file
