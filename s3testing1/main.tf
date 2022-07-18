@@ -134,3 +134,4 @@ resource "aws_s3_bucket_lifecycle_configuration" "lifecycle_bucket4" {
     }
   }
 }
+#send this
