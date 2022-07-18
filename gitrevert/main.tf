@@ -30,3 +30,8 @@ resource "aws_s3_bucket" "imported_bucket2" {
 #M
 #U
 #S
+#K
+#A
+#N
+
+#T
