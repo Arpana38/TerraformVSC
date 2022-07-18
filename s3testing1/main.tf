@@ -1,15 +1,4 @@
 #############################################################################################
-########################################## Bucket 1 #########################################
-#Create a s3 bucket using terraform
-resource "aws_s3_bucket" "s3_bucket_1" {
-  bucket = "t-s3bucket-blank1"
-  
-  tags = {
-    Name        = "My bucket"
-    Environment = "Dev"
-  }
-}
-#############################################################################################
 ########################################## Bucket 2 #########################################
 #######################################  Main Bucket 2 ######################################
 #import a s3 bucket using terraform. The manual created bucket should be imported.
@@ -25,17 +14,24 @@ resource "aws_s3_bucket_public_access_block" "imported_bucket2_BPL" {
   bucket = aws_s3_bucket.imported_bucket2.id
 
   block_public_acls       = true          #1
-  ignore_public_acls      = true         #2
-  block_public_policy     = true          #3
-  restrict_public_buckets = true         #4   
+  ignore_public_acls      = true        #2
+  block_public_policy     = true         #3
+  restrict_public_buckets = true           #4   
   #if only one of them is false, block all public access status is OFF. 
   #if all of them is true, block all public access status if ON. 
-}/*
+}
+################################### ownership #############################################
+/*resource "aws_s3_bucket_ownership_controls" "imported_bucket2_ownership" {
+  bucket = aws_s3_bucket.imported_bucket2.id
+  rule {
+    object_ownership = "BucketOwnerPreferred"
+  }
+}*/
 ###################################  ##### ACL #############################################
 resource "aws_s3_bucket_acl" "imported_bucket2_acl" {
   bucket = aws_s3_bucket.imported_bucket2.id
   acl    = "private"
-}*/
+}
 ################################### Bucket 2 Versioning #####################################
 resource "aws_s3_bucket_versioning" "imported_bucket2_versioning" {
   bucket = aws_s3_bucket.imported_bucket2.id
@@ -47,10 +43,10 @@ resource "aws_s3_bucket_versioning" "imported_bucket2_versioning" {
 resource "aws_s3_bucket_lifecycle_configuration" "lifecycle_bucket2" {
   bucket = aws_s3_bucket.imported_bucket2.id
   rule {
-    id = "rule-1"
+    id = "bucket2lifecycle"
     status = "Enabled"
     expiration {
-      days = 30
+      days = 15
     }
   }
 }
@@ -82,57 +78,3 @@ resource "aws_s3_object" "import_manualcode1_object4" {
   source = "null"  
 }
 */
-#############################################################################################
-########################################## Bucket 3 #########################################
-#import manually created bucket to terraform configuration and add lifecycle policy
-resource "aws_s3_bucket" "imported_bucket3" {
-  bucket = "buctesting3manualcreated"
-}
-############################## Bucket 3 lifecycle configuration ##############################
-resource "aws_s3_bucket_lifecycle_configuration" "lifecycle_bucket3" {
-  bucket = aws_s3_bucket.imported_bucket3.id
-
-  rule {
-    id = "rule-1"
-    status = "Enabled"
-    expiration {
-      days = 30
-    }
-  }
-}
-#############################################################################################
-###################################### Bucket 4 Manual ######################################
-#import manually created bucket to terraform configuration which aleady have tag and lifecycle configured
-#for testing change the tag name
-#for testing change the lifecycle number of days
-resource "aws_s3_bucket" "imported_bucket4" {
-  bucket = "buctesting4manualcreated"
-  tags = {
-    name = "tagbuctesting4manualcreated"
-  }
-}
-################################### Bucket 2 Versioning #####################################
-resource "aws_s3_bucket_versioning" "imported_bucket4_versioning" {
-  bucket = aws_s3_bucket.imported_bucket4.id
-  versioning_configuration {
-    status = "Enabled"
-  }
-}
-############################## Bucket 3 lifecycle configuration ##############################
-###
-#ERROR
-####
-resource "aws_s3_bucket_lifecycle_configuration" "lifecycle_bucket4" {
-  depends_on = [aws_s3_bucket_versioning.imported_bucket4_versioning]
-  bucket = aws_s3_bucket.imported_bucket4.bucket
-
-  rule {
-    id = "lifecyclebuctesting4"
-    status = "Enabled"
-    expiration {
-      days = 30
-    }
-  }
-}
-#send this
-#send this
