@@ -6,6 +6,16 @@ resource "aws_s3_bucket" "terra_bucket5" {
     name = "terrabucket5"
   }
 }
+resource "aws_s3_bucket_server_side_encryption_configuration" "terra_bucket5_encryption" {
+  bucket = aws_s3_bucket.terra_bucket5.bucket
+
+  rule {
+    apply_server_side_encryption_by_default {
+      kms_master_key_id = "arn:aws:kms:us-east-1:409269111861:key/20b3be2f-67b8-46f3-a9d1-8a08fec73d0c"
+      sse_algorithm     = "aws:kms"
+    }
+  }
+}
 ############################## Bucket 5 Block Public Access ##############################
 resource "aws_s3_bucket_public_access_block" "terra_bucket5_BPL" {
   bucket = aws_s3_bucket.terra_bucket5.id

@@ -9,14 +9,34 @@ resource "aws_s3_bucket" "imported_bucket2" {
     name = "tag-bucket2"
   }
 }
+/*
+##############################################################################################
+resource "aws_kms_key" "imported_bucket2_mykey" {
+  description             = "This key is used to encrypt bucket objects"
+  deletion_window_in_days = 10
+}*/
+############################################ Encrption #######################################
+resource "aws_s3_bucket_server_side_encryption_configuration" "imported_bucket2_encryption" {
+  bucket = aws_s3_bucket.imported_bucket2.bucket
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm     = "AES256"
+#      kms_master_key_id = "arn:aws:kms:us-east-1:409269111861:key/20b3be2f-67b8-46f3-a9d1-8a08fec73d0c"
+#      sse_algorithm     = "aws:kms"
+    }
+  }
+}
+#      kms_master_key_id = "arn:aws:kms:us-east-1:409269111861:key/20b3be2f-67b8-46f3-a9d1-8a08fec73d0c"
+#      sse_algorithm     = "aws:kms"
 ############################## Bucket 2 Block Public Access ##############################
 resource "aws_s3_bucket_public_access_block" "imported_bucket2_BPL" {
   bucket = aws_s3_bucket.imported_bucket2.id
 
   block_public_acls       = true          #1
-  ignore_public_acls      = true        #2
-  block_public_policy     = true         #3
-  restrict_public_buckets = true           #4   
+  ignore_public_acls      = true       #2
+  block_public_policy     = true        #3
+  restrict_public_buckets = false          #4   
   #if only one of them is false, block all public access status is OFF. 
   #if all of them is true, block all public access status if ON. 
 }
@@ -27,7 +47,31 @@ resource "aws_s3_bucket_public_access_block" "imported_bucket2_BPL" {
     object_ownership = "BucketOwnerPreferred"
   }
 }*/
-###################################  ##### ACL #############################################
+####################################### Bucket 2 Policy ###################################
+resource "aws_s3_bucket_policy" "imported_bucket2_allow_access_principal" {
+  bucket = aws_s3_bucket.imported_bucket2.id
+  policy = data.aws_iam_policy_document.imported_bucket2_allow_access_principal.json
+}
+
+data "aws_iam_policy_document" "imported_bucket2_allow_access_principal" {
+  statement {
+    principals {
+      type        = "AWS"
+      identifiers = ["arn:aws:iam::409269111861:root"]
+    }
+
+    actions = [
+      "s3:GetObject",
+      "s3:ListBucket",
+    ]
+
+    resources = [
+      aws_s3_bucket.imported_bucket2.arn,
+      "${aws_s3_bucket.imported_bucket2.arn}/*",
+    ]
+  }
+}
+######################################## ACL #############################################
 resource "aws_s3_bucket_acl" "imported_bucket2_acl" {
   bucket = aws_s3_bucket.imported_bucket2.id
   acl    = "private"
