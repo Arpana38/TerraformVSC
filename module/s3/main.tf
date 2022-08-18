@@ -1,12 +1,11 @@
 ######################################################################################################
 ####################  TERRAFORM SCRIPT TO CREATE S3 BUCKETS FOR THE SIA APPLICATION ##################
-######################################################################################################
 ########## bucket 11 output ##########
 output "bucket_arn" {
     value = aws_s3_bucket.terra_bucket11.arn
 }
-output "bucket_id" {
-    value = aws_s3_bucket.terra_bucket11.id
+output "terra_bucket11_arn" {
+    value = aws_s3_bucket.terra_bucket11.arn
 }
 ########## bucket 11 ##########
 resource "aws_s3_bucket" "terra_bucket11" {
@@ -14,43 +13,21 @@ resource "aws_s3_bucket" "terra_bucket11" {
   tags = {name = "bucket11","terraform" = true}
 }
 ########## data source lambda #####
-data "aws_lambda_function" "bucket11-lambda" {
-  function_name = "bucket11-lambda"
-}
-
-#data "aws_lambda_permission" "bucket11-lambda" {
-#  value = "AllowExecutionFromS3Bucket"
+#data "aws_lambda_function" "bucket11-lambda" {
+#  function_name = "bucket11-lambda"
 #}
-
-#output "aws_lambda_permission_bucket11_lambda" {
-#    value = aws_lambda_permission.bucket11-lambda
-#}
-
-########## bucket 11 SNS ##########
-resource "aws_s3_bucket_notification" "terra_bucket11" {
-  bucket = aws_s3_bucket.terra_bucket11.id
-
-  lambda_function {
-    lambda_function_arn = data.aws_lambda_function.bucket11-lambda.arn
-#    lambda_function_arn = "arn:aws:lambda:us-east-1:409269111861:function:bucket11-lambda"
-    events              = ["s3:ObjectCreated:*"]
-  }
-#  depends_on = [aws_lambda_permission.bucket11-lambda]
-}
 ########## bucket 11 policy ##########
-
 resource "aws_s3_bucket_policy" "terra_bucket11" {
+  count  = fileexists("module/s3/com.coco.focus.${var.env}.eleven.bucket.json") ? 1 : 0
   bucket = aws_s3_bucket.terra_bucket11.id
-#  policy = fileexists("module/s3/com.coco.focus.${var.env}.eleven.bucket.json") ? file("module/s3/com.coco.focus.${var.env}.eleven.bucket.json") : 0
-  policy = "${file ("module/s3/com.coco.focus.${var.env}.eleven.bucket.json")}"   
+  policy = file("module/s3/com.coco.focus.${var.env}.eleven.bucket.json")
   #env=stage(has policy)  #env=prod(no policy) how to use 1:0? create if exist,do not create if not exit.
 }
-
 ########## bucket 11 Versioning ##########
 resource "aws_s3_bucket_versioning" "terra_bucket11" {
   bucket = aws_s3_bucket.terra_bucket11.id
   versioning_configuration {
-    status = "Disabled"
+    status = "Suspended"
   }
 }
 ########## bucket 11 public access block ########## 
@@ -93,16 +70,55 @@ resource "aws_s3_bucket_lifecycle_configuration" "terra_bucket11" {
     }
   }
 }
-########## bucket 11 folder creation ##########
+########## bucket 11 folder creation ##############
+### import manually created folder only not object ####
+
+# Findings = we cannot import s3 folder but we can create the resource for s3 folder and apply. When apply after creating s3 folder resource,s3 folder will be captured by terraform but objects in the folder will not be impacted. 
+### scenario 1 ###
+### folder4 in the bucket already created, need to capture in terraform ###
+### create resource and apply. the object will not be impacted ###
+resource "aws_s3_object" "create-folder4" {
+  count = "1"
+  bucket = aws_s3_bucket.terra_bucket11.id
+  acl = "private"
+  key = "folder4/"    #folder and name of the file in s3
+#  source = "./module/s3/index1.txt"  #path to source/file which will be read.Data inside it will be uploaded/inserted in key path.
+}
+
+### scenrio 2 ###
+### folder5 in the bucket not created, need to created from terraform ###
+### create resource and apply. the object will not be created. empty folder will be created ###
+resource "aws_s3_object" "create-folder5-fromterraform" {
+  count = "1"
+  bucket = aws_s3_bucket.terra_bucket11.id
+  acl = "private"
+  key = "folder5/"    #folder and name of the file in s3
+#  source = "./module/s3/index1.txt"  #path to source/file which will be read.Data inside it will be uploaded/inserted in key path.
+}
+
+/*resource "aws_s3_object" "terra_bucket11" {
+  bucket = aws_s3_bucket.terra_bucket11.id
+  acl = "private"
+  key = "external/index.txt"    #folder and name of the file in s3
+  source = "./module/s3/index1.txt"  #path to source/file which will be read.Data inside it will be uploaded/inserted in key path.
+}*/
+
+### Below is working ###
 /*
 resource "aws_s3_object" "terra_bucket11" {
-    for_each = toset(var.terra_bucket11_folder)
+  bucket = aws_s3_bucket.terra_bucket11.id
+  acl = "private"
+  key = "external/index1.txt"    #folder and name of the file in s3
+  source = "./module/s3/index.txt"  #path to source/file which will be read.Data inside it will be uploaded/inserted in key path.
+}
+*/
+
+resource "aws_s3_object" "bucket11_folders" {
+    for_each = toset(var.bucket11_folder)
     bucket = aws_s3_bucket.terra_bucket11.id
     acl = "private"
     key = each.key
-    source = "null"
 }
-*/
 ########## bucket 11 encryption ##########
 /*
 resource "aws_s3_bucket_server_side_encryption_configuration" "terra_bucket11" {
@@ -138,22 +154,3 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "terra_bucket11" {
     }
   }
 }*/
-#######################################################################
-########## bucket 11 ##########
-resource "aws_s3_bucket" "terra_bucket21" {
-  bucket = "com.coco.focus.${var.env}.twentyone.bucket"
-  tags = {name = "bucket11","terraform" = true}
-}
-
-resource "aws_s3_bucket_ownership_controls" "terra_bucket21" {
-  bucket = aws_s3_bucket.terra_bucket21.id
-
-  rule {
-    object_ownership = "ObjectWriter"
-  }
-}
-
-resource "aws_s3_bucket_acl" "terra_bucket21" {
-  bucket = aws_s3_bucket.terra_bucket21.id
-  acl    = "private"
-}

@@ -1,4 +1,6 @@
 env = "stage"
+notification_terra_bucket11_enabled = "true"
+lambda210_enabled = "true"
 
 #bucket policy
 #bucket11policy = bucket11policy.json

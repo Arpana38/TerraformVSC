@@ -1,10 +1,10 @@
-variable "env" {
-    description = "environment name"
-}
-
 #variable "terra_bucket11" {
 #    description = "bucket arn"
 #}
+
+variable "env" {
+    description = "environment name"
+}
 
 variable "notification_terra_bucket11_enabled" {
     description = "environment name"
@@ -16,7 +16,7 @@ variable "lambda210_enabled" {
     default = false
 }
 
-#variable "lambda210_alias_enabled" {
+#Variable "lambda210_alias_enabled" {
 #    description = "lambda210 enable or disable"
 #    default = false
 #}

@@ -11,8 +11,7 @@
       "Resource": ["arn:aws:s3:::com.coco.focus.stage.eleven.bucket/*","arn:aws:s3:::com.coco.focus.stage.eleven.bucket"],
       "Principal": {
         "AWS": [
-          "arn:aws:iam::409269111861:user/Coco",
-          "arn:aws:iam::409269111861:role/s3-eleven-role"
+          "arn:aws:iam::409269111861:user/Coco"
         ]
       }
     }
