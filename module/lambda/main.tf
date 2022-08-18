@@ -199,3 +199,12 @@ resource "aws_sns_topic_subscription" "user_subscription2" {
 #  confirmation_timeout_in_minutes = 1
 #  endpoint_auto_confirms          = false
 }
+
+
+#adding this after stash in terra
+#new code
+
+
+
+
+#adding new line
