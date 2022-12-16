@@ -1,6 +1,19 @@
 env = "stage"
+zone_name = "bisanranjit.com"
 notification_terra_bucket11_enabled = "true"
 lambda210_enabled = "true"
+
+sns-subscription-email = [
+    "ranjitbisan08@gmail.com",
+    "devops.bisanranjit@gmail.com",
+    "bisanranjit369@gmail.com"
+    ]
+
+### automation bucket ###################################
+automation-bucket-folder = ["automationresult/"]
+
+
+
 
 #bucket policy
 #bucket11policy = bucket11policy.json

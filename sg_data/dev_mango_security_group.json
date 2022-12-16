@@ -1,0 +1,13 @@
+{
+    "security_group" : {
+        "ingress_rules" : [
+            {
+                "from_port": 80,
+                "to_port" : 80,
+                "protocol" : "TCP",
+                "cidr_blocks" : "0.0.0.0/0",
+                "description" : "manually created 1"
+            }
+        ]
+    }
+}

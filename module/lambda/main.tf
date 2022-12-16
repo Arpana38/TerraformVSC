@@ -24,11 +24,11 @@ resource "aws_lambda_alias" "lambda210" {
 #    value = aws_s3_bucket.terra_bucket11.arn
 #}
 ########## data source lambda #####
-data "aws_s3_bucket" "terra_bucket11" {
+/*data "aws_s3_bucket" "terra_bucket11" {
   bucket = "com.coco.focus.${var.env}.eleven.bucket"
-}
+}*/
 #com.coco.focus.stage.eleven.bucket
-resource "aws_lambda_permission" "lambda210" {
+/*resource "aws_lambda_permission" "lambda210" {
   count         = var.lambda210_enabled ? 1 : 0
   statement_id  = "AllowExecutionFromS3Bucket"
   action        = "lambda:InvokeFunction"
@@ -36,8 +36,8 @@ resource "aws_lambda_permission" "lambda210" {
   principal     = "s3.amazonaws.com"
   source_arn    = data.aws_s3_bucket.terra_bucket11.arn
 #  qualifier     = aws_lambda_alias.test_alias.name
-}
-########## bucket 11 SNS ##########
+}*/
+/*########## bucket 11 SNS ##########
 resource "aws_s3_bucket_notification" "terra_bucket11" {
   count = var.notification_terra_bucket11_enabled ? 1 : 0
   bucket = data.aws_s3_bucket.terra_bucket11.id
@@ -47,8 +47,7 @@ resource "aws_s3_bucket_notification" "terra_bucket11" {
     events              = ["s3:ObjectCreated:*"]
   }
 #  depends_on = [aws_lambda_permission.bucket11-lambda]
-}
-
+}*/
 
 ####################################################################################################################
 ########## IAM Role Lambda #####
@@ -78,17 +77,17 @@ EOF
 #}
 ########################################################
 ################# bucket11-lambda ######################
-resource "aws_lambda_permission" "bucket11-lambda" {
+/*resource "aws_lambda_permission" "bucket11-lambda" {
   statement_id  = "AllowExecutionFromS3Bucket"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.bucket11-lambda.arn
   principal     = "s3.amazonaws.com"
   source_arn    = data.aws_s3_bucket.terra_bucket11.arn
 }
-
-output "aws_lambda_permission_bucket11_lambda" {
+*/
+/*output "aws_lambda_permission_bucket11_lambda" {
     value = aws_lambda_permission.bucket11-lambda
-}
+}*/
 
 resource "aws_lambda_function" "bucket11-lambda" {
   filename      = "./module/lambda/file2.zip"
@@ -100,111 +99,58 @@ resource "aws_lambda_function" "bucket11-lambda" {
   publish       = false
   timeout       = 5
 }
-
-###############################################################################################
-########################################### Budget  ###########################################
-resource "aws_budgets_budget" "budget-one" {
-  name              = "budget-reporting1"
+####################################################################################################################################################################################################################################################################################################################################################################################################################################
+##### Budget #################################
+resource "aws_budgets_budget" "daily-budget" {
+  count             = var.daily-budget-enabled ? 1 : 0
+  name              = "Daily-${var.env}"
   budget_type       = "COST"
-  limit_amount      = "12"
+  limit_amount      = "249.98"
   limit_unit        = "USD"
-  time_period_end   = "2087-06-15_00:00"
-  time_period_start = "2022-08-01_00:00"
-  time_unit         = "MONTHLY"
+  time_period_start = "2022-08-22_00:00"
+  time_unit         = "DAILY"
+  cost_types {
+    include_credit             = false
+    include_discount           = true
+    include_other_subscription = true
+    include_recurring          = true
+    include_refund             = false
+    include_subscription       = true
+    include_support            = true
+    include_tax                = true
+    include_upfront            = true
+    use_amortized              = true    
+    use_blended                = false
+  }
 
   notification {
     comparison_operator        = "GREATER_THAN"
     threshold                  = 120
     threshold_type             = "PERCENTAGE"
     notification_type          = "ACTUAL"
-    subscriber_email_addresses = ["ranjitbisan08@gmail.com"]
-    subscriber_sns_topic_arns  = ["arn:aws:sns:us-east-1:409269111861:sns-fifo-budget-reporting1"]
+    subscriber_sns_topic_arns  = ["${aws_sns_topic.daily-budget-sns[0].arn}"]
   }
 }
-###############################################################################################
-############################################# SNS #############################################
-resource "aws_sns_topic" "sns-topic-budget-reporting1" {
-  name            = "sns-fifo-budget-reporting1"
-  policy          = <<EOF
-{
-  "Version": "2008-10-17",
-  "Id": "__default_policy_ID",
-  "Statement": [
-    {
-      "Sid": "__default_statement_ID1",
-      "Effect": "Allow",
-      "Principal": {
-        "AWS": "*"
-      },
-      "Action": [
-        "SNS:GetTopicAttributes",
-        "SNS:SetTopicAttributes",
-        "SNS:AddPermission",
-        "SNS:RemovePermission",
-        "SNS:DeleteTopic",
-        "SNS:Subscribe",
-        "SNS:ListSubscriptionsByTopic",
-        "SNS:Publish"
-      ],
-      "Resource": "arn:aws:sns:us-east-1:409269111861:sns-fifo-budget-reporting1",
-      "Condition": {
-        "StringEquals": {
-          "AWS:SourceOwner": "409269111861"
-        }
-      }
-    },
-    {
-      "Sid": "AWSBudgets-notification-1",
-      "Effect": "Allow",
-      "Principal": {
-        "Service": "budgets.amazonaws.com"
-      },
-      "Action": "SNS:Publish",
-      "Resource": "arn:aws:sns:us-east-1:409269111861:sns-fifo-budget-reporting1"
-    }
-  ]
+##### SNS ####################################
+resource "aws_sns_topic" "daily-budget-sns" {
+  count           = var.daily-budget-enabled ? 1 : 0
+  name            = var.sns-daily-budget
 }
-EOF
-  delivery_policy = <<EOF
-{
-  "http": {
-    "defaultHealthyRetryPolicy": {
-      "minDelayTarget": 20,
-      "maxDelayTarget": 20,
-      "numRetries": 3,
-      "numMaxDelayRetries": 0,
-      "numNoDelayRetries": 0,
-      "numMinDelayRetries": 0,
-      "backoffFunction": "linear"
-    },
-    "disableSubscriptionOverrides": false
-  }
-}
-EOF
+##### SNS Policy ####################################
+resource "aws_sns_topic_policy" "daily-budget-sns-policy" {
+  count           = fileexists("module/lambda/sns.accesspolicy.${var.env}.budget.json") ? 1 : 0
+  arn             = aws_sns_topic.daily-budget-sns[0].arn
+  policy          = file("module/lambda/sns.accesspolicy.${var.env}.budget.json")
 }
 ##################################################################################################
 ##########################################  SNS Subcription ######################################
-resource "aws_sns_topic_subscription" "user_subscription" {
-  endpoint = "ranjitbisan08@gmail.com"
-  topic_arn = "arn:aws:sns:us-east-1:409269111861:sns-fifo-budget-reporting1"
+/*resource "aws_sns_topic_subscription" "daily-budget-sns-1" {
+#  for_each = toset(var.sns-subscription-email) == true ? 1 : 0
+  for_each = toset(var.sns-subscription-email)
+  topic_arn = aws_sns_topic.daily-budget-sns[0].arn
   protocol = "email"
-#  confirmation_timeout_in_minutes = 1
-#  endpoint_auto_confirms          = false
+  confirmation_timeout_in_minutes = 1
+  endpoint_auto_confirms          = false
+  endpoint                        = each.value
 }
-
-resource "aws_sns_topic_subscription" "user_subscription2" {
-  endpoint = "devops.bisanranjit@gmail.com"
-  topic_arn = "arn:aws:sns:us-east-1:409269111861:sns-fifo-budget-reporting1"
-  protocol = "email"
-#  confirmation_timeout_in_minutes = 1
-#  endpoint_auto_confirms          = false
-}
-
-
-#adding this after stash in terra
-#new code
-
-
-
-
-#adding new line
+*/

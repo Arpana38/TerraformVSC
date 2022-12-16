@@ -1,26 +1,14 @@
-variable "bucket11_folder" {
-    type = list(string)
-    description = "list of folders to create"
-    default = ["hi/","hello/","hey/","mike/","tom1/","tom2/"]
-}
-
-/*variable "canonical_external_account" {
-    description = "canonical external account ID for s3 bucket access"
-}
-
-variable "canonical_owner_account" {
-    description = "canonical owner account ID for s3 bucket access"
-}*/
-
-/*variable "bucket11policy" {
-    description = "bucket11policy"
-}*/
-
 variable "env" {
     description = "environment name"
 }
 
-#variable "notification_terra_bucket11_enabled" {
-#    description = "environment name"
-#    default = false
-#}
+variable "zone_name" {
+    description = "Name of the Hosted Zone Domain Name in Route53"
+    default     = null
+}
+
+variable "automation-bucket-folder" {
+    type = list(string)
+    description = "Name of folders in automation result bucket"
+    default = ["automationresult/"]
+}
