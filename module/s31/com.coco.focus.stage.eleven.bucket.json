@@ -1,0 +1,19 @@
+{
+  "Id": "Policy1658721137557",
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "s3:GetObject",
+        "s3:ListBucket"
+      ],
+      "Effect": "Allow",
+      "Resource": ["arn:aws:s3:::com.coco.focus.stage.eleven.bucket/*","arn:aws:s3:::com.coco.focus.stage.eleven.bucket"],
+      "Principal": {
+        "AWS": [
+          "arn:aws:iam::409269111861:user/Coco"
+        ]
+      }
+    }
+  ]
+}
